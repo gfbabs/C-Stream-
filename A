@@ -1,0 +1,334 @@
+import React, { useState, useEffect } from 'react';
+import { Music, Home, Search, Library, Heart, Play, Pause, SkipBack, SkipForward, Volume2, Menu, X } from 'lucide-react';
+
+const App = () => {
+  const [playing, setPlaying] = useState(false);
+  const [currentTrack, setCurrentTrack] = useState(0);
+  const [blessed, setBlessed] = useState({});
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [volume, setVolume] = useState(70);
+
+  const trendingSongs = [
+    { id: 1, title: 'Neon Dreams', artist: 'Cosmic Valley', plays: '2.4M', cover: 'bg-gradient-to-br from-purple-600 to-pink-500', duration: '3:42' },
+    { id: 2, title: 'Golden Hour', artist: 'Aurora Sky', plays: '1.9M', cover: 'bg-gradient-to-br from-yellow-500 to-orange-600', duration: '4:15' },
+    { id: 3, title: 'Midnight Echo', artist: 'Luna & The Void', plays: '1.6M', cover: 'bg-gradient-to-br from-indigo-700 to-purple-900', duration: '3:58' },
+    { id: 4, title: 'Electric Soul', artist: 'Nyx Collective', plays: '1.4M', cover: 'bg-gradient-to-br from-cyan-500 to-blue-600', duration: '3:35' },
+    { id: 5, title: 'Velvet Night', artist: 'Sade & Echo', plays: '1.2M', cover: 'bg-gradient-to-br from-rose-500 to-purple-600', duration: '4:02' },
+    { id: 6, title: 'Stellar Waves', artist: 'Cosmos Wave', plays: '1.1M', cover: 'bg-gradient-to-br from-amber-400 to-red-500', duration: '3:51' },
+  ];
+
+  const playlists = [
+    { id: 1, name: 'Vibes Check', songs: 48 },
+    { id: 2, name: 'Focus Flow', songs: 32 },
+    { id: 3, name: 'Late Night', songs: 61 },
+    { id: 4, name: 'Summer Hits', songs: 45 },
+  ];
+
+  const toggleBlessed = (songId) => {
+    setBlessed(prev => ({
+      ...prev,
+      [songId]: !prev[songId]
+    }));
+  };
+
+  const nextTrack = () => {
+    setCurrentTrack((prev) => (prev + 1) % trendingSongs.length);
+  };
+
+  const prevTrack = () => {
+    setCurrentTrack((prev) => (prev - 1 + trendingSongs.length) % trendingSongs.length);
+  };
+
+  const currentSong = trendingSongs[currentTrack];
+
+  return (
+    <div className="bg-black text-white h-screen flex flex-col overflow-hidden font-['Poppins']">
+      {/* Background glow effect */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-purple-600 opacity-20 blur-3xl rounded-full"></div>
+        <div className="absolute bottom-24 left-0 w-80 h-80 bg-yellow-500 opacity-10 blur-3xl rounded-full"></div>
+      </div>
+
+      <div className="flex-1 flex overflow-hidden relative z-10">
+        {/* Desktop Sidebar */}
+        <div className="hidden md:flex w-64 bg-gradient-to-b from-gray-900/80 to-black/80 border-r border-purple-500/20 flex-col backdrop-blur-sm">
+          <div className="p-6 border-b border-purple-500/20">
+            <div className="flex items-center gap-2 text-2xl font-black tracking-tight">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-yellow-400 rounded-lg flex items-center justify-center">
+                <Music className="w-6 h-6 text-black" />
+              </div>
+              <span className="bg-gradient-to-r from-purple-400 via-yellow-300 to-purple-400 bg-clip-text text-transparent">C-Stream</span>
+            </div>
+          </div>
+
+          <nav className="flex-1 p-6 space-y-4">
+            <NavItem icon={<Home className="w-5 h-5" />} label="Home" active />
+            <NavItem icon={<Search className="w-5 h-5" />} label="Search" />
+            <NavItem icon={<Library className="w-5 h-5" />} label="Your Library" />
+          </nav>
+
+          <div className="p-6 border-t border-purple-500/20 space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-purple-400/80">Playlists</h3>
+            {playlists.map(playlist => (
+              <div key={playlist.id} className="text-sm text-gray-400 hover:text-white transition cursor-pointer truncate">
+                {playlist.name}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Mobile Menu Overlay */}
+        {mobileMenuOpen && (
+          <div className="fixed inset-0 bg-black/80 z-40 md:hidden" onClick={() => setMobileMenuOpen(false)}>
+            <div className="w-64 bg-gradient-to-b from-gray-900 to-black h-full p-6 border-r border-purple-500/20 flex flex-col" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-2 text-2xl font-black">
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-yellow-400 rounded-lg flex items-center justify-center">
+                    <Music className="w-6 h-6 text-black" />
+                  </div>
+                  <span className="bg-gradient-to-r from-purple-400 to-yellow-400 bg-clip-text text-transparent">C-Stream</span>
+                </div>
+                <button onClick={() => setMobileMenuOpen(false)}>
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <nav className="space-y-4 mb-8">
+                <NavItem icon={<Home className="w-5 h-5" />} label="Home" active />
+                <NavItem icon={<Search className="w-5 h-5" />} label="Search" />
+                <NavItem icon={<Library className="w-5 h-5" />} label="Your Library" />
+              </nav>
+            </div>
+          </div>
+        )}
+
+        {/* Main Content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="md:hidden flex items-center justify-between p-4 bg-black/40 backdrop-blur-sm border-b border-purple-500/20">
+            <button onClick={() => setMobileMenuOpen(true)}>
+              <Menu className="w-6 h-6" />
+            </button>
+            <div className="flex items-center gap-2 text-xl font-black">
+              <Music className="w-5 h-5 text-purple-400" />
+              <span>C-Stream</span>
+            </div>
+            <div className="w-6" />
+          </div>
+
+          <div className="p-4 md:p-8">
+            {/* Header */}
+            <div className="mb-8">
+              <h1 className="text-3xl md:text-5xl font-black mb-2 bg-gradient-to-r from-purple-300 via-yellow-300 to-purple-300 bg-clip-text text-transparent">
+                Good Evening
+              </h1>
+              <p className="text-gray-400">Your personalized music awaits</p>
+            </div>
+
+            {/* Trending Section */}
+            <div className="mb-12">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-1 h-8 bg-gradient-to-b from-purple-500 to-yellow-400 rounded-full"></div>
+                <h2 className="text-2xl font-black">Trending Now</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {trendingSongs.map((song, idx) => (
+                  <div
+                    key={song.id}
+                    onClick={() => setCurrentTrack(idx)}
+                    className="group bg-gradient-to-br from-gray-900/60 to-gray-800/40 hover:from-purple-900/40 hover:to-yellow-900/30 border border-purple-500/20 rounded-xl p-4 cursor-pointer transition-all duration-300 backdrop-blur-sm hover:border-purple-400/40 hover:shadow-lg hover:shadow-purple-500/20"
+                  >
+                    {/* Album Art */}
+                    <div className={`${song.cover} rounded-lg h-40 md:h-48 mb-4 flex items-center justify-center shadow-lg group-hover:shadow-2xl group-hover:shadow-purple-500/30 transition-all duration-300 transform group-hover:scale-105`}>
+                      <Play className="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </div>
+
+                    {/* Song Info */}
+                    <h3 className="font-bold text-lg mb-1 truncate">{song.title}</h3>
+                    <p className="text-sm text-gray-400 mb-3">{song.artist}</p>
+
+                    {/* Stats and Actions */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-purple-400 font-semibold">{song.plays} plays</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleBlessed(song.id);
+                        }}
+                        className={`transition-all duration-200 p-2 rounded-full ${
+                          blessed[song.id]
+                            ? 'bg-gradient-to-r from-purple-500 to-yellow-400 text-black'
+                            : 'bg-gray-700/50 hover:bg-purple-500/50 text-white'
+                        }`}
+                      >
+                        <Heart className="w-4 h-4" fill={blessed[song.id] ? 'currentColor' : 'none'} />
+                      </button>
+                    </div>
+
+                    {/* Bless Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleBlessed(song.id);
+                      }}
+                      className={`w-full mt-3 py-2 px-3 rounded-lg font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
+                        blessed[song.id]
+                          ? 'bg-gradient-to-r from-purple-500 to-yellow-400 text-black shadow-lg shadow-purple-500/50'
+                          : 'bg-purple-600/40 hover:bg-purple-600/60 text-purple-200 border border-purple-500/30 hover:border-purple-400'
+                      }`}
+                    >
+                      <Heart className="w-4 h-4" />
+                      {blessed[song.id] ? 'Blessed!' : 'Bless'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Featured Playlists */}
+            <div>
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-1 h-8 bg-gradient-to-b from-yellow-400 to-purple-500 rounded-full"></div>
+                <h2 className="text-2xl font-black">Your Playlists</h2>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {playlists.map(playlist => (
+                  <div
+                    key={playlist.id}
+                    className="bg-gradient-to-br from-gray-900/60 to-gray-800/40 hover:from-purple-900/40 hover:to-gray-800/60 border border-purple-500/20 rounded-lg p-4 cursor-pointer transition-all duration-300 backdrop-blur-sm group"
+                  >
+                    <div className="bg-gradient-to-br from-purple-600 to-yellow-500 rounded-lg aspect-square mb-4 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-purple-500/30 transition-all">
+                      <Music className="w-8 h-8 text-black opacity-70" />
+                    </div>
+                    <h3 className="font-bold text-sm mb-1 truncate">{playlist.name}</h3>
+                    <p className="text-xs text-gray-400">{playlist.songs} songs</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Player Bar */}
+      <div className="border-t border-purple-500/30 bg-gradient-to-t from-black via-gray-900/80 to-gray-900/40 backdrop-blur-md px-4 md:px-8 py-4">
+        <div className="flex items-center gap-4 mb-4">
+          {/* Track Info */}
+          <div className={`${currentSong.cover} rounded-lg w-16 h-16 flex-shrink-0 flex items-center justify-center shadow-lg`}>
+            <Music className="w-6 h-6 text-white opacity-50" />
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold truncate">{currentSong.title}</h3>
+            <p className="text-sm text-gray-400 truncate">{currentSong.artist}</p>
+          </div>
+
+          {/* Player Controls - Desktop */}
+          <div className="hidden md:flex items-center gap-4">
+            <button
+              onClick={prevTrack}
+              className="p-2 hover:bg-purple-500/30 rounded-full transition-all duration-200 text-gray-300 hover:text-white"
+            >
+              <SkipBack className="w-5 h-5" />
+            </button>
+
+            <button
+              onClick={() => setPlaying(!playing)}
+              className="p-3 bg-gradient-to-r from-purple-500 to-yellow-400 hover:shadow-lg hover:shadow-purple-500/50 rounded-full transition-all duration-200 text-black"
+            >
+              {playing ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
+            </button>
+
+            <button
+              onClick={nextTrack}
+              className="p-2 hover:bg-purple-500/30 rounded-full transition-all duration-200 text-gray-300 hover:text-white"
+            >
+              <SkipForward className="w-5 h-5" />
+            </button>
+
+            {/* Volume Control */}
+            <div className="flex items-center gap-2 ml-4">
+              <Volume2 className="w-5 h-5 text-gray-400" />
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={volume}
+                onChange={(e) => setVolume(parseInt(e.target.value))}
+                className="w-24 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
+              />
+              <span className="text-xs text-gray-400 w-8">{volume}%</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-gray-500">1:24</span>
+          <div className="flex-1 h-1 bg-gray-700 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-purple-500 to-yellow-400 w-1/3 rounded-full"></div>
+          </div>
+          <span className="text-xs text-gray-500">{currentSong.duration}</span>
+        </div>
+
+        {/* Mobile Player Controls */}
+        <div className="flex md:hidden items-center justify-center gap-6 mt-4">
+          <button
+            onClick={prevTrack}
+            className="p-2 hover:bg-purple-500/30 rounded-full transition-all duration-200 text-gray-300 hover:text-white"
+          >
+            <SkipBack className="w-5 h-5" />
+          </button>
+
+          <button
+            onClick={() => setPlaying(!playing)}
+            className="p-3 bg-gradient-to-r from-purple-500 to-yellow-400 hover:shadow-lg hover:shadow-purple-500/50 rounded-full transition-all duration-200 text-black"
+          >
+            {playing ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
+          </button>
+
+          <button
+            onClick={nextTrack}
+            className="p-2 hover:bg-purple-500/30 rounded-full transition-all duration-200 text-gray-300 hover:text-white"
+          >
+            <SkipForward className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Bottom Navigation - Mobile Only */}
+      <div className="md:hidden border-t border-purple-500/30 bg-black/80 backdrop-blur-md px-4 py-3 flex justify-around items-center">
+        <NavMobileItem icon={<Home className="w-6 h-6" />} label="Home" active />
+        <NavMobileItem icon={<Search className="w-6 h-6" />} label="Search" />
+        <NavMobileItem icon={<Heart className="w-6 h-6" />} label="Liked" />
+        <NavMobileItem icon={<Library className="w-6 h-6" />} label="Library" />
+      </div>
+    </div>
+  );
+};
+
+const NavItem = ({ icon, label, active = false }) => (
+  <div
+    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 cursor-pointer ${
+      active
+        ? 'bg-gradient-to-r from-purple-600 to-yellow-500 text-white shadow-lg shadow-purple-500/30'
+        : 'text-gray-400 hover:text-white hover:bg-purple-500/10'
+    }`}
+  >
+    {icon}
+    <span className="font-semibold">{label}</span>
+  </div>
+);
+
+const NavMobileItem = ({ icon, label, active = false }) => (
+  <div
+    className={`flex flex-col items-center gap-1 py-2 px-3 rounded-lg transition-all duration-200 cursor-pointer ${
+      active ? 'text-purple-400' : 'text-gray-400 hover:text-white'
+    }`}
+  >
+    {icon}
+    <span className="text-xs font-semibold">{label}</span>
+  </div>
+);
+
+export default App;
